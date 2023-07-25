@@ -4,39 +4,38 @@ from dataclasses import dataclass
 @dataclass
 class FontConfig:
     FONT_SIZE = [8, 34]
-    FONT_FAMILY = ['Courier', 'Inconsolata', 'Ubuntu Mono']
+    FONT_FAMILY = ['Courier', 
+                   'Inconsolata', 
+                   'Ubuntu Mono']
 
-    def __init__(self, family, size):
-        self.family = family
-        self.size = size
+    family: str
+    size: int
 
 
 @dataclass
 class ModeConfig:
-    def __init__(self, bg, fg, 
-                 font_config, name):
-        self.name = name
-        self.bg = bg
-        self.fg = fg
-        self.font_config = font_config
+    name: str
+    bg: str 
+    fg: str
+    font_config: FontConfig
 
     @staticmethod
     def LightMode():
-        return ModeConfig('white', 
-                          'black', 
-                          FontConfig('Inconsolata', 16), 
-                          'Light')
+        return ModeConfig('Light', 
+                          'white', 
+                          'black',  
+                           FontConfig('Inconsolata', 16))
 
     @staticmethod
     def DarkMode():
-        return ModeConfig('black', 
+        return ModeConfig('Dark', 
+                          'black', 
                           'green', 
-                          FontConfig('Courier', 16), 
-                          'Dark')
+                           FontConfig('Courier', 16))
 
     @staticmethod
     def ShBishMode():
-        return ModeConfig('light yellow', 
-                          'purple', 
-                          FontConfig('Courier', 16), 
-                          'Swish Bish')
+        return ModeConfig('Swish Bish',  
+                          'light yellow',
+                          'purple',
+                           FontConfig('Courier', 16))
