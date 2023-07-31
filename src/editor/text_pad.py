@@ -71,4 +71,5 @@ class TextPad():
             self.text_area.delete('1.0', tk.END)
             self.text_area.insert('1.0', f.read())
         self.filepath = filepath
+        self.update_number_bar()
 
