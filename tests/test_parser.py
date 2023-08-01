@@ -37,3 +37,11 @@ def test_parse_predicate():
     assert parser.parse_predicate() == Predicate("p", PList([Atom("a"), Atom("b"), 
                                                              Atom("c"), PList([Atom("a"), 
                                                              Atom("b"), Atom("c")])]))
+    
+def test_parse_nf_predicate(): 
+    nf_pred = "not(q(a, b, c))"
+    parser = PrologParser(nf_pred)
+    assert parser.parse_nf_predicate() == NfPredicate("q", PList([Atom("a"),
+                                                                  Atom("b"), 
+                                                                  Atom("c")]))
+    

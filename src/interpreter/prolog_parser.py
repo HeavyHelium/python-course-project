@@ -221,16 +221,17 @@ class PrologParser:
             raise Exception("Expected a not, got " + str(self.tokens[self.index][0]))
         self.index += 1
         
-        if self.token[self.index][0] != "LPAREN": 
-            print(self.tokens[self.index][0])
+        if self.tokens[self.index][0] != "LPAREN": 
             raise Exception("Expected an openning parenthesis, got " 
                             + str(self.tokens[self.index][0]))
+        self.index += 1
 
         pred: Predicate = self.parse_predicate()
 
         if self.tokens[self.index][0] != "RPAREN": 
             raise Exception("Expected a closing parenthesis, got " 
                             + str(self.tokens[self.index][0]))
+        self.index += 1
 
         return NfPredicate(pred.name, pred.arguments) 
 
