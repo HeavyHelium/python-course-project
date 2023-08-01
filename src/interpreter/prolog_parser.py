@@ -3,10 +3,11 @@ from typing import List
 from src.interpreter.tokenizer import Tokenizer
 
 class PrologParser: 
-    COMMENT = r'%[^\n]*|/\*(.|\n)*?\*/'
+    """
+    Class to build the AST from the tokens.
+    """
 
     def __init__(self, source: str) -> None:
-        self._source: str = re.sub(PrologParser.COMMENT, '', source) # remove comments
         t: Tokenizer = Tokenizer()
         t.tokenize(self._source)
         self._tokens: List[str] = t.tokens
