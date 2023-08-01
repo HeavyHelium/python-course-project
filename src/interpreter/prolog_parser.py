@@ -1,9 +1,16 @@
 from typing import List, Union
+from src.interpreter.tokenizer import Tokenizer
 
 # could've made those two dataclasses, but decided not to for consistency
 class Variable:
     def __init__(self, name: str) -> None:
         self.name = name
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Variable):
+            return self.name == o.name
+        else:
+            return False
 
     def __str__(self) -> str:
         return self.name
@@ -13,6 +20,13 @@ class Variable:
 class Atom:
     def __init__(self, name: str) -> None:
         self.name = name
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Atom):
+            return self.name == o.name
+        else:
+            return False
+    
     def __str__(self) -> str:
         return self.name
     def __repr__(self) -> str:
@@ -22,7 +36,13 @@ class Atom:
 class PList: 
     def __init__(self, elements: List[Union[Atom, Variable, "PList"]]) -> None: 
         self.elements = elements
-        
+    
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, PList):
+            return self.elements == o.elements
+        else:
+            return False
+
     def __str__(self) -> str:
         return '[' + ", ".join([str(e) for e in self.elements]) + ']'
 
@@ -34,20 +54,32 @@ class Predicate:
     Class for first order predicate literals
     """
     def __init__(self, name: str, arguments: PList) -> None: 
-        self.name = name 
-        self.arguments = arguments
+        self.name: str = name 
+        self.arguments: PList = arguments
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Predicate):
+            return self.name == o.name and self.arguments == o.arguments
+        else:
+            return False
 
     def __str__(self) -> str:
         return self.name + str(self.arguments)
     def __repr__(self) -> str:
         return "Predicate(" + self.name + ", " + repr(self.arguments) + ")"
     
-class NfPreficate(Predicate): 
+class NfPredicate(Predicate): 
     """
     To support negation as failure
     """
     def __init__(self, name: str, arguments: PList) -> None:
         super().__init__(name, arguments)
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, NfPredicate):
+            return super().__eq__(o)
+        else:
+            return False
 
     def __str__(self) -> str: 
         return "not(" + super().__str__() + ")"
@@ -66,7 +98,8 @@ class Conjunction:
     Conjuctions represent rule tails
     Conjuctions represent also queries 
     """
-    def __init__(self, predicates: List[Predicate]) -> None: 
+    def __init__(self, predicates: List[Predicate]) -> None:  # We allow for negation as failure
+                                                              # in queries and rule tails
         self.predicates = predicates
 
     def __str__(self) -> str:
@@ -90,6 +123,118 @@ class Rule:
     
     def __repr__(self) -> str:
         return "Rule(" + repr(self.head) + ", " + repr(self.tail) + ")"
+    
+
+class PrologParser: 
+    def __init__(self, text: str) -> None: 
+        self.text: str = text
+        t: Tokenizer = Tokenizer()
+        t.tokenize(text)
+        self.tokens: List = t.tokens # this might throw an exception, 
+                                # but we don't catch it here
+        self.index = 0 # index of the current token
+
+    def parse_atom(self) -> Atom:
+        """
+        Parses an atom
+        """
+        atom = Atom(self.tokens[self.index][1])
+        self.index += 1
+        return atom
+    
+    def parse_variable(self) -> Variable:
+        """
+        Parses a variable
+        """
+        variable = Variable(self.tokens[self.index][1])
+        self.index += 1
+        return variable
+    
+    def parse_argument(self) -> Union[Atom, Variable, "PList"]:
+        """
+        Parses an argument
+        """
+        if self.tokens[self.index][0] == "VARIABLE" \
+          or self.tokens[self.index][0] == "WILDCARD": 
+            return self.parse_variable()
+        
+        elif self.tokens[self.index][0] == "ATOM"\
+          or self.tokens[self.index][0] == "INTEGER": 
+            return self.parse_atom()
+        
+        elif self.tokens[self.index][0] == "LBRACKET": 
+            return self.parse_plist()
+        else: 
+            raise Exception("Expected an atom, variable or list, got " 
+                            + str(self.tokens[self.index][0]))
+    
+    def parse_plist(self, 
+                    opener: str = "LBRACKET", 
+                    closer: str = "RBRACKET") -> PList:
+        """
+        Parses a list of elements
+        """
+        elements = list()
+        self.index += 1 # skip the opener
+
+        while self.tokens[self.index][0] != closer \
+              and self.index < len(self.tokens): 
+            
+            elements.append(self.parse_argument()) 
+            
+            if self.index >= len(self.tokens):
+                raise Exception("Expected a closing bracket, got EOF")
+            
+            if self.tokens[self.index][0] == "COMMA": 
+                self.index += 1
+            
+            elif self.tokens[self.index][0] != closer: 
+                raise Exception("Expected a comma or a closing bracket, got " 
+                                + str(self.tokens[self.index][0]))
+            else: # closer
+                self.index += 1
+                return PList(elements)
+            
+        raise Exception("Expected a closing bracket, got " + str(self.tokens[self.index][0]))
+
+    def parse_predicate(self) -> Predicate: # positive literal
+        """
+        Parses a predicate
+        """
+        if self.tokens[self.index][0] != "ATOM": 
+            raise Exception("Expected an atom, got " + str(self.tokens[self.index][0]))
+        name = self.tokens[self.index][1]
+        self.index += 1
+
+        if self.tokens[self.index][0] != "LPAREN": 
+            raise Exception("Expected an openning parenthesis, got " 
+                            + str(self.tokens[self.index][0]))
+        
+        arguments = self.parse_plist("LPAREN", "RPAREN")
+        return Predicate(name, arguments)
+    
+    def parse_nf_predicate(self) -> NfPredicate: # negative literal
+        """
+        Parses a negative literal
+        """
+        if self.tokens[self.index][0] != "NOT": 
+            raise Exception("Expected a not, got " + str(self.tokens[self.index][0]))
+        self.index += 1
+        
+        if self.token[self.index][0] != "LPAREN": 
+            print(self.tokens[self.index][0])
+            raise Exception("Expected an openning parenthesis, got " 
+                            + str(self.tokens[self.index][0]))
+
+        pred: Predicate = self.parse_predicate()
+
+        if self.tokens[self.index][0] != "RPAREN": 
+            raise Exception("Expected a closing parenthesis, got " 
+                            + str(self.tokens[self.index][0]))
+
+        return NfPredicate(pred.name, pred.arguments) 
+
+
 
 
 class KnowledgeBase: 

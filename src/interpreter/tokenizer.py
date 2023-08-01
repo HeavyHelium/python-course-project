@@ -6,12 +6,13 @@ class Tokenizer:
     Simple lexer for Prolog-style syntax.
     """
     COMMENT: str = r'%[^\n]*|/\*(.|\n)*?\*/'
-    KEYWORDS: List[str] = ['not']
+    KEYWORDS: List[str] = ['not', 'true']
     PATTERNS: List[Tuple[str, str]] = [
                                         (r'\'[^\']*\'', 'QUOTED_ATOM'),
                                         (r'\_', 'WILDCARD'),
                                         (r'[A-Z_][A-Za-z0-9_]*', 'VARIABLE'),
                                         (r'not', 'NOT'),
+                                        (r'true', 'TRUE'),
                                         (r'[a-z][A-Za-z0-9_]*', 'ATOM'),
                                         (r'[1-9][0-9]*|0', 'INTEGER'), # for potential arithmetic, not implemented yet
                                         (r':-', 'IMPLICATION'),
@@ -21,8 +22,13 @@ class Tokenizer:
                                         (r'\)', 'RPAREN'),
                                         (r'\[', 'LBRACKET'),
                                         (r'\]', 'RBRACKET'),
-                                        (r'\|', 'PIPE'),
+                                        (r'\|', 'PIPE'), # TODO: implement list pattern matching; might add head predicate instead
                                         (r'\s+', 'WHITESPACE'), 
+                                        # might also add ';' for disjunction, 
+                                        # even though it's not part of pure Prolog
+                                        # (r'\;', 'DISJUNCTION')
+                                        # it's not even necessary, 
+                                        # by virtue of negation 
                                     ]
     def __init__(self) -> None:
         self.tokens: List[Tuple[str, str]] = []
