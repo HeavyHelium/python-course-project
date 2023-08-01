@@ -5,8 +5,8 @@ class Tokenizer:
     """
     Simple lexer for Prolog-style syntax.
     """
-    COMMENT = r'%[^\n]*|/\*(.|\n)*?\*/'
-    KEYWORDS = ['not']
+    COMMENT: str = r'%[^\n]*|/\*(.|\n)*?\*/'
+    KEYWORDS: List[str] = ['not']
     PATTERNS: List[Tuple[str, str]] = [
                                         (r'\'[^\']*\'', 'QUOTED_ATOM'),
                                         (r'\_', 'WILDCARD'),
@@ -37,15 +37,16 @@ class Tokenizer:
         
         regex = re.compile(combined_PATTERNS)
 
-        i = 0
+        i: int = 0
+        
         while i < len(source_code):
             match = regex.match(source_code, i)
             if match is None:
                 raise ValueError(f'Invalid syntax: {source_code[i:]}')
             else:
                 i = match.end()
-                token_type = match.lastgroup
-                token_value = match.group(token_type)
+                token_type: str = match.lastgroup
+                token_value: str = match.group(token_type)
 
                 if token_type != 'WHITESPACE':
                     self.tokens.append((token_type, token_value))
