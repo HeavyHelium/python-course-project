@@ -56,3 +56,14 @@ def test_invalid():
   t = Tokenizer()
   with pytest.raises(ValueError):
     t.tokenize(src)
+
+def test_true():
+  src = """
+    is_is_not(_) :- true.
+
+"""
+  t = Tokenizer()
+  t.tokenize(src)
+  assert t.tokens == [('ATOM', 'is_is_not'), ('LPAREN', '('),
+                      ('WILDCARD', '_'), ('RPAREN', ')'), ('IMPLICATION', ':-'),
+                      ('TRUE', 'true'), ('PERIOD', '.')]

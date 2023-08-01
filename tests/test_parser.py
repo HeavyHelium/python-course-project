@@ -1,2 +1,2 @@
-from src.interpreter.prolog_parser import PrologParser
+from src.interpreter.prolog_parser import *
 
