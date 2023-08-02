@@ -67,8 +67,9 @@ class Predicate:
         return self.name + str(self.arguments)
     def __repr__(self) -> str:
         return "Predicate(" + self.name + ", " + repr(self.arguments) + ")"
-    
-class NfPredicate(Predicate): 
+
+
+class NfPredicate(Predicate):
     """
     To support negation as failure
     """
@@ -107,6 +108,12 @@ class Conjunction:
     
     def __repr__(self) -> str:
         return "Conjunction(" + ", ".join([repr(p) for p in self.predicates]) + ")"
+    
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Conjunction):
+            return self.predicates == o.predicates
+        else:
+            return False
 
 Query = Conjunction # Semantically, a query is a conjunction    
 
@@ -118,11 +125,46 @@ class Rule:
         self.head = head 
         self.tail = tail
 
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Rule):
+            return self.head == o.head and self.tail == o.tail
+        else:
+            return False
+        
+    @property
+    def name(self) -> str:
+        return self.head.name
+
     def __str__(self) -> str:
         return str(self.head) + " :- " + str(self.tail)
     
     def __repr__(self) -> str:
         return "Rule(" + repr(self.head) + ", " + repr(self.tail) + ")"
+    
+
+class KnowledgeBase: 
+    """
+    The knowledge base is made up of rules and facts 
+    It represents a Horn program
+    """
+
+    def __init__(self): 
+        self.clauses: dict[str, List[Union[Fact, Rule]]] = dict()
+
+
+    def add_clause(self, clause: Union[Fact, Rule]) -> None:
+        if clause.name not in self.clauses: 
+            self.clauses[clause.name] = list()
+        self.clauses[clause.name].append(clause)
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, KnowledgeBase):
+            return self.clauses == o.clauses
+        else:
+            return False
+
+    
+    
     
 
 class PrologParser: 
@@ -195,14 +237,16 @@ class PrologParser:
                 self.index += 1
                 return PList(elements)
             
-        raise Exception("Expected a closing bracket, got " + str(self.tokens[self.index][0]))
+        raise Exception("Expected a closing bracket, got " 
+                        + str(self.tokens[self.index][0]))
 
     def parse_predicate(self) -> Predicate: # positive literal
         """
         Parses a predicate
         """
         if self.tokens[self.index][0] != "ATOM": 
-            raise Exception("Expected an atom, got " + str(self.tokens[self.index][0]))
+            raise Exception("Expected an atom, got " 
+                            + str(self.tokens[self.index][0]))
         name = self.tokens[self.index][1]
         self.index += 1
 
@@ -218,7 +262,8 @@ class PrologParser:
         Parses a negative literal
         """
         if self.tokens[self.index][0] != "NOT": 
-            raise Exception("Expected a not, got " + str(self.tokens[self.index][0]))
+            raise Exception("Expected a not, got " 
+                            + str(self.tokens[self.index][0]))
         self.index += 1
         
         if self.tokens[self.index][0] != "LPAREN": 
@@ -235,23 +280,87 @@ class PrologParser:
 
         return NfPredicate(pred.name, pred.arguments) 
 
+    def parse_goal(self) -> Conjunction: 
+        """
+        Parses a conjunction
+        """
+        predicates: List[Predicate] = []
+        while self.tokens[self.index][0] != "PERIOD": 
+            if self.tokens[self.index][0] == "NOT": 
+                predicates.append(self.parse_nf_predicate())
+            else: 
+                predicates.append(self.parse_predicate())
+            
+            if self.index >= len(self.tokens):
+                raise Exception("Expected a comma or end of clause, got EOF")
 
+            if self.tokens[self.index][0] == "COMMA": 
+                self.index += 1
+            elif self.tokens[self.index][0] != "PERIOD": 
+                raise Exception("Expected a comma or end of clause, got " 
+                                + str(self.tokens[self.index][0]))
+            
+        self.index += 1
 
-
-class KnowledgeBase: 
-    """
-    The knowledge base is made up of rules and facts 
-    It represents a Horn program
-    """
-
-    def __init__(self): 
-        self.clauses: dict[str, List[Union[Fact, Rule]]] = dict()
+        return Conjunction(predicates)
     
-    def add_clause(self, clause: Union[Fact, Rule]) -> None:
-        if clause.name not in self.clauses: 
-            self.clauses[clause.name] = list()
-        self.clauses[clause.name].append(clause)
+    def parse_rule(self) -> Rule:
+        """
+        Parses a rule
+        """
+        head: Predicate = self.parse_predicate()
+        if self.index >= len(self.tokens):
+            raise Exception("Expected implication, got EOF")
+        
+
+        if self.tokens[self.index][0] != "IMPLICATION": 
+            raise Exception("Expected an implication, got " 
+                            + str(self.tokens[self.index][0]))
+        
+        self.index += 1
+        tail: Conjunction = self.parse_goal()
+        return Rule(head, tail)
     
+    def parse_fact(self) -> Fact:
+        """
+        Parses a fact
+        """
+        pred: Predicate = self.parse_predicate()
+        if self.index >= len(self.tokens):
+            raise Exception("Expected end of clause, got EOF")
+        
+        if self.tokens[self.index][0] != "PERIOD":
+            raise Exception("Expected end of clause, got " 
+                            + str(self.tokens[self.index][0]))
+        
+        self.index += 1
+        return Fact(pred.name, pred.arguments)
+    
+    def parse_program_clause(self) -> Union[Fact, Rule]:
+        """
+        Parses a clause of a Horn program 
+        """
+        temp_id = self.index
+        try: 
+            e: Fact = self.parse_fact()
+            return e
+        except Exception:
+            self.index = temp_id
+            return self.parse_rule()
+        
+
+    def parse_program(self) -> KnowledgeBase: 
+        """
+        Parses a Horn program
+        """
+        kb = KnowledgeBase()
+        while self.index < len(self.tokens): 
+            clause = self.parse_program_clause()
+            kb.add_clause(clause)
+        return kb
+
+
+
 
 
 

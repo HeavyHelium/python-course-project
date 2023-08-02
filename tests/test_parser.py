@@ -1,3 +1,4 @@
+import pytest
 from src.interpreter.prolog_parser import *
 
 
@@ -44,4 +45,70 @@ def test_parse_nf_predicate():
     assert parser.parse_nf_predicate() == NfPredicate("q", PList([Atom("a"),
                                                                   Atom("b"), 
                                                                   Atom("c")]))
+    
+
+def test_parse_goal(): 
+    goal = "p(a, b, c), q(a, b, _), not(r(a, b, X))."
+    parser = PrologParser(goal)
+    assert parser.parse_goal() == Conjunction([Predicate("p", PList([Atom("a"),
+                                                                     Atom("b"),
+                                                                     Atom("c")])),
+                                               Predicate("q", PList([Atom("a"),
+                                                                     Atom("b"),
+                                                                     Variable("_")])),
+                                               NfPredicate("r", PList([Atom("a"),
+                                                                       Atom("b"),
+                                                                       Variable("X")]))])
+    goal = "p(a, b, c), q(a, b, _), not(r(a, b, X))"
+    with pytest.raises(Exception):
+        parser = PrologParser(goal)
+        parser.parse_goal()
+    
+def test_parse_fact(): 
+    fact = "p([1, 2, X], _, X)."
+    parser = PrologParser(fact)
+    assert parser.parse_fact() == Predicate("p", PList([PList([Atom("1"),
+                                                               Atom("2"),
+                                                               Variable("X")]),
+                                                        Variable("_"),
+                                                        Variable("X")]))
+
+def test_parse_rule(): 
+    rule = "p(X, Y, Z) :- q(X, Y), not(r(X, Y, Z))."
+    parser = PrologParser(rule)
+    assert parser.parse_rule() == Rule(Predicate("p", PList([Variable("X"),
+                                                             Variable("Y"),
+                                                             Variable("Z")])),
+                                       Conjunction([Predicate("q", PList([Variable("X"),
+                                                                          Variable("Y")])),
+                                                    NfPredicate("r", PList([Variable("X"),
+                                                                            Variable("Y"),
+                                                                            Variable("Z")]))]))
+    
+    rule = "p(X, Y, Z) :- q(X, Y), not(r(X, Y, Z))"
+    with pytest.raises(Exception):
+        parser = PrologParser(rule)
+        parser.parse_rule()
+
+
+def test_parse_program(): 
+    program = "p(X, Y, Z) :- q(X, Y), not(r(X, Y, Z)).\np([1, 2, X], _, X)."
+    parser = PrologParser(program)
+    res_kb = KnowledgeBase()
+    res_kb.add_clause(Rule(Predicate("p", PList([Variable("X"),
+                                                  Variable("Y"),
+                                                    Variable("Z")])),
+                            Conjunction([Predicate("q", PList([Variable("X"),
+                                                                Variable("Y")])),
+                                            NfPredicate("r", PList([Variable("X"),
+                                                                    Variable("Y"),
+                                                                    Variable("Z")]))])))
+    res_kb.add_clause(Predicate("p", PList([PList([Atom("1"),
+                                                    Atom("2"),
+                                                    Variable("X")]),
+                                            Variable("_"),
+                                            Variable("X")])))
+    assert parser.parse_program() == res_kb
+    
+
     
