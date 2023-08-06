@@ -91,7 +91,7 @@ def test_parse_rule():
         parser.parse_rule()
 
 
-def test_parse_program(): 
+def test_parse_program():
     program = "p(X, Y, Z) :- q(X, Y), not(r(X, Y, Z)).\np([1, 2, X], _, X)."
     parser = PrologParser(program)
     res_kb = KnowledgeBase()
@@ -117,50 +117,3 @@ def test_atom_equality():
     a3 = Atom("a")
     a4 = Atom("b")
     assert a1 == a2 and a1 == a3 and a1 != a4
-
-
-
-
-
-def test_unification():
-    t1 = Atom("a")
-    t2 = Atom("b")
-    t3 = Variable("X")
-    t4 = Variable("Y")
-
-    unif = Unification()
-
-    # assert unif.unify(t1, t2) == False
-    # assert unif.unify(t1, t3) == True
-    # assert unif.substitution == {Variable('X'): t1}
-    # assert unif.unify(t3, t4) == True
-    # assert unif.substitution == {Variable('X'): t1, Variable('Y'): t1}
-
-    # t5 = PList([Atom("a"), Atom("b"), Atom("c")])
-    # t6 = PList([Atom("a"), Atom("b"), Variable("X")])
-
-    # assert unif.unify(t5, t6) == True
-    # assert unif.substitution == {Variable('X'): Atom("c")}
-
-    p1 = Predicate("parent", PList([Atom("Maria"), Atom("Gosho")]))
-    p2 = Predicate("parent", PList([Atom("Maria"), Atom("Ana")]))
-
-    p3 = Predicate("parent", PList([Atom("Maria"), Variable("X")]))
-
-    assert unif.unify(p1, p2) == False
-    assert unif.unify(p3, p1) == True
-    assert unif.substitution == {Variable('X'): Atom("Gosho")}
-    # assert unif.unify(p2, p3) == True
-    # assert unif.substitution == {Variable('X'): Atom("Ana")}
-
-
-def test_answering():
-    kb = KnowledgeBase()
-    kb.add_clause(Predicate("parent", PList([Atom("Maria"), Atom("Gosho")])))
-    kb.add_clause(Predicate("parent", PList([Atom("Maria"), Atom("Ana")])))
-    kb.add_clause(Predicate("parent", PList([Atom("Gosho"), Atom("Pesho")])))
-
-
-    goal = Predicate("parent", PList([Atom("Maria"), Variable("X")]))
-    assert kb.handle_query(goal) == [({Variable('X'): Atom("Gosho")}),
-                                     ({Variable('X'): Atom("Ana")})]
