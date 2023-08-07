@@ -22,6 +22,7 @@ class PrologParser:
         """
         atom = Atom(self.tokens[self.index][1])
         self.index += 1
+
         return atom
 
     def parse_variable(self) -> Variable:
@@ -41,7 +42,8 @@ class PrologParser:
             return self.parse_variable()
 
         elif self.tokens[self.index][0] == "ATOM"\
-          or self.tokens[self.index][0] == "INTEGER":
+          or self.tokens[self.index][0] == "INTEGER"\
+          or self.tokens[self.index][0] =="QUOTED_ATOM":
             return self.parse_atom()
 
         elif self.tokens[self.index][0] == "LBRACKET":
