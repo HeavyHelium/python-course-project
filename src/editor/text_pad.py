@@ -1,7 +1,7 @@
 """
 Represents the typing area of the editor
 """
-import tkinter as tk 
+import tkinter as tk
 from src.editor.configs import FontConfig, ModeConfig
 
 
@@ -32,7 +32,8 @@ class TextPad():
         """
         self.text_area.bind('<KeyPress>', self.on_keypress)
 
-    def on_keypress(self, event):
+
+    def on_keypress(self):
         """
         Updates the line numbers when a key is pressed
         """
@@ -59,7 +60,7 @@ class TextPad():
         """
         elements = [self.number_bar, self.text_area]
         for elem in elements:
-            elem.config(font=(font_config.family, 
+            elem.config(font=(font_config.family,
                               font_config.size))
 
     def set_mode(self, mode_config=ModeConfig.dark_mode()) -> None:
@@ -68,7 +69,7 @@ class TextPad():
         """
         elements = [self.number_bar, self.text_area]
         for elem in elements:
-            elem.config(bg=mode_config.bg, 
+            elem.config(bg=mode_config.bg,
                         fg=mode_config.fg)
         self.set_font(mode_config.font_config)
 
@@ -76,7 +77,7 @@ class TextPad():
         """
         Returns the line numbers of the text area
         """
-        line, col = self.text_area.index('end').split('.')
+        line, _ = self.text_area.index('end').split('.')
         return list(range(1, int(line)))
 
     def update_number_bar(self) -> None:
@@ -109,7 +110,7 @@ class TextPad():
         return self.text_area.get('1.0', tk.END) == '\n'
 
     def open(self, filepath) -> None:
-        with open(filepath, 'r') as f: 
+        with open(filepath, 'r') as f:
             self.text_area.delete('1.0', tk.END)
             self.text_area.insert('1.0', f.read())
         self.filepath = filepath
