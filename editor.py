@@ -42,7 +42,15 @@ class SimpleEditor():
 
         self.query_frame.run_button.config(command=self.run_query)
 
+        self.key_bindings()
 
+    def key_bindings(self) -> None:
+        """
+        Binds the keypress event to the text area
+        """
+        self.root.bind("<Control-s>", self.menu.menus['file'].save)
+        self.root.bind("<Control-v>", self.text_pad.update_number_bar())
+    
     def run(self) -> None:
         """
         Runs the app

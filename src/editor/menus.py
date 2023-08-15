@@ -43,6 +43,10 @@ class FileMenu(tk.Menu):
                          tearoff=0)
         self.root = root
         self.add_commands()
+        self.key_bindings()
+
+    def key_bindings(self) -> None:
+        self.root.root.bind("<Control-s>", self.save)
 
     def add_commands(self) -> None:
         """
@@ -69,7 +73,7 @@ class FileMenu(tk.Menu):
             return
         self.root.text_pad.save_as(filepath)
 
-    def save(self) -> None:
+    def save(self, event=None) -> None:
         """
         Saves the file
         """
