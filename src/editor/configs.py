@@ -29,32 +29,32 @@ class ModeConfig:
     fg: str
     font_config: FontConfig
 
-    @staticmethod
-    def light_mode():
+    @classmethod
+    def light_mode(cls) -> "ModeConfig":
         """
         Returns a light mode configuration
         """
-        return ModeConfig('Light',
-                          'white', 
-                          'black',  
-                           FontConfig('Inconsolata', 16))
+        return cls('Light',
+                   'white', 
+                   'black',  
+                    FontConfig('Inconsolata', 16))
 
-    @staticmethod
-    def dark_mode():
+    @classmethod
+    def dark_mode(cls) -> "ModeConfig":
         """
         Returns a dark mode configuration
         """
-        return ModeConfig('Dark',
-                          'black', 
-                          'green', 
-                           FontConfig('Courier', 16))
+        return cls('Dark',
+                   'black', 
+                   'green', 
+                    FontConfig('Courier', 16))
 
-    @staticmethod
-    def sh_bish_mode():
+    @classmethod
+    def sh_bish_mode(cls) -> "ModeConfig":
         """
         Returns a swish bish mode configuration
         """
-        return ModeConfig('Swish Bish',
-                          'light yellow',
-                          'purple',
-                           FontConfig('Courier', 16))
+        return cls('Swish Bish',
+                   'light yellow',
+                   'purple',
+                    FontConfig('Courier', 16))
