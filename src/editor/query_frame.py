@@ -57,6 +57,14 @@ class QueryFrame(tk.Frame):
         self.output: tk.Text = tk.Text(self.outputframe)
         self.output.grid(row=0, column=0, sticky='nsew')
 
+    def set_text(self, text:str) -> None:
+        """
+        Sets the output box to have text as its content
+        """
+        self.output.delete(1.0, tk.END)
+        self.output.insert(tk.END, text)
+
+
     def set_font(self, font_config=FontConfig('Courier', 16)) -> None:
         """
         Sets the font of the editor,
@@ -88,4 +96,3 @@ class QueryFrame(tk.Frame):
         Returns the query from the input
         """
         return self.input.get()
-
