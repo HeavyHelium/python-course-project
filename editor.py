@@ -50,6 +50,7 @@ class SimpleEditor():
         """
         self.root.bind("<Control-s>", self.menu.menus['file'].save)
         self.root.bind("<Control-v>", self.text_pad.update_number_bar())
+        self.root.bind("<Control-Return>", self.run_query)
     
     def run(self) -> None:
         """
@@ -84,7 +85,7 @@ class SimpleEditor():
         self.set_font(mode_config.font_config)
 
 
-    def run_query(self) -> None:
+    def run_query(self, event=None) -> None:
         """
         Takes the query from the query frame and runs it
         """
@@ -95,15 +96,14 @@ class SimpleEditor():
         try:
             intr.load_base_direct(src)
         except Exception as e:
-            self.query_frame.output.delete(1.0, tk.END)
-            self.query_frame.output.insert(tk.END, str(e))
+            self.query_frame.set_text(str(e))
             return
-        
-        return_val: str = str(intr.answer(query))
 
-        self.query_frame.output.delete(1.0, tk.END)
-        self.query_frame.output.insert(tk.END, return_val)
-
+        try:
+            res = str(intr.answer(query))
+            self.query_frame.set_text(res)
+        except Exception as e:
+            self.query_frame.set_text(str(e))
 
 
 if __name__ == "__main__":
