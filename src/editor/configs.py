@@ -46,7 +46,7 @@ class ModeConfig:
         """
         return cls('Dark',
                    'black', 
-                   'green', 
+                   'spring green', 
                     FontConfig('Courier', 16))
 
     @classmethod
@@ -58,3 +58,4 @@ class ModeConfig:
                    'light yellow',
                    'purple',
                     FontConfig('Courier', 16))
+

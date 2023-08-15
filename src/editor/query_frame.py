@@ -88,3 +88,4 @@ class QueryFrame(tk.Frame):
         Returns the query from the input
         """
         return self.input.get()
+

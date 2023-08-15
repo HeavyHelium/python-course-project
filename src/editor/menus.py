@@ -36,7 +36,7 @@ class FileMenu(tk.Menu):
     Represents the file menu
     """
     FILE_TYPES = [('Prolog Files', '*.pl'),
-                  ('Text Files', '*.txt')]
+                  ('Text Files', '*.*')]
 
     def __init__(self, master: tk.Frame, root: 'simple_editor') -> None:
         super().__init__(master,
@@ -46,6 +46,9 @@ class FileMenu(tk.Menu):
         self.key_bindings()
 
     def key_bindings(self) -> None:
+        """
+        Sets the key bindings relevant for saving
+        """
         self.root.root.bind("<Control-s>", self.save)
 
     def add_commands(self) -> None:

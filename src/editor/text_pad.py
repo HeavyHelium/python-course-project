@@ -32,7 +32,7 @@ class TextPad():
         """
         self.text_area.bind('<KeyPress>', self.on_keypress)
 
-    def on_keypress(self, event):
+    def on_keypress(self, event=None):
         """
         Updates the line numbers when a key is pressed
         """
