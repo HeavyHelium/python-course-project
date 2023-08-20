@@ -1,5 +1,5 @@
 from src.interpreter.interpreter import Interpreter
-from src.interpreter.terms import Variable, Atom, PList
+from src.interpreter.terms import Variable, Atom
 import os
 
 def test_sample():

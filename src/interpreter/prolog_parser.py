@@ -1,8 +1,13 @@
-from typing import List, Union, Dict
+"""
+A parser for Prolog programs
+"""
+from typing import List, Union
 from src.interpreter.tokenizer import Tokenizer
 from src.interpreter.terms import Atom, Variable, PList, Predicate,\
                                   NfPredicate, Fact, Rule,\
-                                  Conjunction, KnowledgeBase
+                                  Conjunction
+
+from src.interpreter.knowledge_base import KnowledgeBase
 
 class PrologParser:
     """
@@ -49,8 +54,7 @@ class PrologParser:
         elif self.tokens[self.index][0] == "LBRACKET":
             return self.parse_plist()
         else:
-            raise ValueError("Expected an atom, variable or list, got "
-                            + str(self.tokens[self.index][0]))
+            self.exp_error("an atom, variable or list", str(self.tokens[self.index][0]))
 
     def parse_plist(self,
                     opener: str = "LBRACKET",
@@ -58,43 +62,54 @@ class PrologParser:
         """
         Parses a list of elements
         """
-        elements = list()
+        elements = []
         self.index += 1 # skip the opener
+
+        if self.tokens[self.index][0] == closer:
+            self.index += 1
+            return PList(elements)
 
         while self.tokens[self.index][0] != closer \
               and self.index < len(self.tokens):
 
-            elements.append(self.parse_argument()) 
+            elements.append(self.parse_argument())
 
             if self.index >= len(self.tokens):
-                raise ValueError("Expected a closing bracket, got EOF")
+                self.eof_error("a closing bracket")
 
             if self.tokens[self.index][0] == "COMMA":
                 self.index += 1
 
-            elif self.tokens[self.index][0] != closer: 
-                raise ValueError("Expected a comma or a closing bracket, got "
-                                + str(self.tokens[self.index][0]))
+            elif self.tokens[self.index][0] != closer:
+                self.exp_error("a closing bracket",
+                                str(self.tokens[self.index][0]))
             else: # closer
                 self.index += 1
                 return PList(elements)
 
-        raise ValueError("Expected a closing bracket, got "
-                        + str(self.tokens[self.index][0]))
+        self.exp_error("a closing bracket",
+                       str(self.tokens[self.index][0]))
 
     def parse_predicate(self) -> Predicate: # positive literal
         """
         Parses a predicate
         """
         if self.tokens[self.index][0] != "ATOM":
-            raise ValueError("Expected an atom, got "
-                            + str(self.tokens[self.index][0]))
+            self.exp_error("an atom",
+                            str(self.tokens[self.index][0]))
+
         name = self.tokens[self.index][1]
         self.index += 1
 
+        if self.index >= len(self.tokens):
+            self.eof_error("an openning parenthesis")
+
         if self.tokens[self.index][0] != "LPAREN":
-            raise ValueError("Expected an openning parenthesis, got "
-                            + str(self.tokens[self.index][0]))
+            if self.tokens[self.index][0] == "PERIOD":
+                return Predicate(name, PList([]))
+
+            self.exp_error("an openning parenthesis",
+                            str(self.tokens[self.index][0]))
 
         arguments = self.parse_plist("LPAREN", "RPAREN")
         return Predicate(name, arguments)
@@ -104,20 +119,29 @@ class PrologParser:
         Parses a negative literal
         """
         if self.tokens[self.index][0] != "NOT":
-            raise ValueError("Expected a not, got "
-                            + str(self.tokens[self.index][0]))
+            self.exp_error("a not",
+                           str(self.tokens[self.index][0]))
         self.index += 1
 
+        if self.index >= len(self.tokens):
+            self.eof_error("opening parenthesis")
+
         if self.tokens[self.index][0] != "LPAREN":
-            raise ValueError("Expected an openning parenthesis, got "
-                            + str(self.tokens[self.index][0]))
+            self.exp_error("openning parenthesis",
+                            str(self.tokens[self.index][0]))
         self.index += 1
+
+        if self.index >= len(self.tokens):
+            self.eof_error("atom")
 
         pred: Predicate = self.parse_predicate()
 
+        if self.index >= len(self.tokens):
+            self.eof_error("closing parenthesis")
+
         if self.tokens[self.index][0] != "RPAREN":
-            raise ValueError("Expected a closing parenthesis, got "
-                            + str(self.tokens[self.index][0]))
+            self.exp_error("closing parenthesis",
+                            str(self.tokens[self.index][0]))
         self.index += 1
 
         return NfPredicate(pred.name, pred.arguments)
@@ -134,13 +158,13 @@ class PrologParser:
                 predicates.append(self.parse_predicate())
 
             if self.index >= len(self.tokens):
-                raise ValueError("Expected a comma or end of clause, got EOF")
+                self.eof_error("a comma or end of clause")
 
-            if self.tokens[self.index][0] == "COMMA": 
+            if self.tokens[self.index][0] == "COMMA":
                 self.index += 1
-            elif self.tokens[self.index][0] != "PERIOD": 
-                raise ValueError("Expected a comma or end of clause, got "
-                                + str(self.tokens[self.index][0]))
+            elif self.tokens[self.index][0] != "PERIOD":
+                self.exp_error("a comma or end of clause",
+                                str(self.tokens[self.index][0]))
 
         self.index += 1
 
@@ -152,28 +176,28 @@ class PrologParser:
         """
         head: Predicate = self.parse_predicate()
         if self.index >= len(self.tokens):
-            raise ValueError("Expected implication, got EOF")
+            self.eof_error("implication")
 
 
-        if self.tokens[self.index][0] != "IMPLICATION": 
-            raise ValueError("Expected an implication, got " 
-                            + str(self.tokens[self.index][0]))
+        if self.tokens[self.index][0] != "IMPLICATION":
+            self.exp_error("implication",
+                            str(self.tokens[self.index][0]))
 
         self.index += 1
         tail: Conjunction = self.parse_goal()
         return Rule(head, tail)
-    
+
     def parse_fact(self) -> Fact:
         """
         Parses a fact
         """
         pred: Predicate = self.parse_predicate()
         if self.index >= len(self.tokens):
-            raise ValueError("Expected end of clause, got EOF")
+            self.eof_error("end of clause")
 
         if self.tokens[self.index][0] != "PERIOD":
-            raise ValueError("Expected end of clause, got " 
-                            + str(self.tokens[self.index][0]))
+            self.exp_error("end of clause",
+                           str(self.tokens[self.index][0]))
 
         self.index += 1
         return Fact(pred.name, pred.arguments)
@@ -188,18 +212,33 @@ class PrologParser:
             return e
         except ValueError:
             self.index = temp_id
-            return self.parse_rule()      
+            return self.parse_rule()
 
 
     def parse_program(self) -> KnowledgeBase:
         """
         Parses a Horn program
         """
-        kb = KnowledgeBase()
+        kb: KnowledgeBase = KnowledgeBase()
         while self.index < len(self.tokens):
             clause = self.parse_program_clause()
             kb.add_clause(clause)
         return kb
+
+    @staticmethod
+    def exp_error(expected: str = None, got: str = None) -> None:
+        """
+        Raises a ValueError with a message, 
+        indicating that an expected token did not match the actual token
+        """
+        raise ValueError(f"Expected {expected}. Got {got}.")
+
+    @staticmethod
+    def eof_error(expected: str = None) -> None:
+        """
+        Same as exp_error, but when the end of file is reached unexpectedly 
+        """
+        PrologParser.exp_error(expected, "EOF")
 
 
 

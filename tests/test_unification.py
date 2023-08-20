@@ -1,6 +1,8 @@
 from src.interpreter.terms import Atom, Variable, PList,\
-                                  Predicate, Unification,\
-                                  KnowledgeBase, Rule
+                                  Predicate, Rule
+
+from src.interpreter.unification import Unification
+from src.interpreter.knowledge_base import KnowledgeBase
 
 def test_simple():
     t1 = Atom("a")

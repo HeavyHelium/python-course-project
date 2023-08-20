@@ -1,3 +1,6 @@
+"""
+Module for the tokenizer class
+"""
 import re
 from typing import List, Tuple
 
@@ -22,29 +25,27 @@ class Tokenizer:
                                         (r'\)', 'RPAREN'),
                                         (r'\[', 'LBRACKET'),
                                         (r'\]', 'RBRACKET'),
-                                        (r'\|', 'PIPE'), # TODO: implement list pattern matching; might add head predicate instead
-                                        (r'\s+', 'WHITESPACE'), 
-                                        # might also add ';' for disjunction, 
-                                        # even though it's not part of pure Prolog
-                                        # (r'\;', 'DISJUNCTION')
-                                        # it's not even necessary, 
-                                        # by virtue of negation 
+                                        (r'\|', 'PIPE'), #TODO: implement list pattern matching; might add head predicate instead
+                                        (r'\s+', 'WHITESPACE'),
                                     ]
     def __init__(self) -> None:
         self.tokens: List[Tuple[str, str]] = []
 
     def tokenize(self, source_code: str) -> None:
+        """
+        Tokenizes the source code
+        """
         self.tokens = []
         source_code: str = re.sub(Tokenizer.COMMENT, '', source_code) # remove comments
 
-        combined_PATTERNS: str = '|'.join(f'(?P<{name}>{pattern})' 
-                                          for pattern, name 
+        combined: str = '|'.join(f'(?P<{name}>{pattern})'
+                                          for pattern, name
                                           in Tokenizer.PATTERNS)
-        
-        regex = re.compile(combined_PATTERNS)
+
+        regex = re.compile(combined)
 
         i: int = 0
-        
+
         while i < len(source_code):
             match = regex.match(source_code, i)
             if match is None:

@@ -1,8 +1,7 @@
 from typing import List, Dict, Union
-from src.interpreter.terms import KnowledgeBase, Variable, Atom, PList
+from src.interpreter.terms import Variable, Atom, PList
+from src.interpreter.knowledge_base import KnowledgeBase
 from src.interpreter.prolog_parser import PrologParser
-
-
 
 class Interpreter: 
     def __init__(self, kb: KnowledgeBase = KnowledgeBase()) -> None:
@@ -13,6 +12,13 @@ class Interpreter:
         Loads a knowledge base from a file
         """
         content = open(file_path, "r").read()
+        prs = PrologParser(content)
+        self.kb = prs.parse_program()
+
+    def load_base_direct(self, content: str) -> None:
+        """
+        Loads a knowledge base from a string
+        """
         prs = PrologParser(content)
         self.kb = prs.parse_program()
 
