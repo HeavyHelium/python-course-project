@@ -1,5 +1,5 @@
-from typing import List, Dict, Union
-from src.interpreter.terms import Variable, Atom, PList
+from typing import List
+from src.interpreter.terms import Conjunction
 from src.interpreter.knowledge_base import KnowledgeBase
 from src.interpreter.prolog_parser import PrologParser
 
@@ -22,12 +22,14 @@ class Interpreter:
         prs = PrologParser(content)
         self.kb = prs.parse_program()
 
-    def answer(self, query: str) -> List[Dict[Variable, Union[Atom, Variable, PList]]]:
+    def answer(self, query: str) -> List[Conjunction]:
         """
         Queries the knowledge base
         """
         prs = PrologParser(query)
-        query = prs.parse_goal().predicates
+        query = prs.parse_goal()
         print(query)
 
-        return self.kb.answer_query(query, {})
+        print(self.kb.answer_query(query))
+
+        return self.kb.answer_query(query)

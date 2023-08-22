@@ -4,7 +4,6 @@ Module to represent terms and clauses
 
 from typing import List, Union
 
-# could've made those two dataclasses, but decided not to, for consistency
 class Variable:
     """
     Class for first order variables
@@ -17,13 +16,15 @@ class Variable:
             return self.name == o.name
 
         return False
+
     def __hash__(self) -> int:
-        return hash(self.name)
+        return id(self) # so as to get a unique hash for each variable, regardless of name
 
     def __str__(self) -> str:
         return self.name
     def __repr__(self) -> str:
         return "Variable(" + self.name + ")"
+
 
 class Atom:
     """
@@ -39,6 +40,9 @@ class Atom:
                    or self.quoted(self.name) == o.name
 
         return False
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def __str__(self) -> str:
         return self.name
@@ -58,7 +62,8 @@ class PList:
     Usually used as arguments to predicates
     Also used to represent Prolog lists 
     """
-    def __init__(self, elements: List[Union[Atom, Variable, "PList"]]) -> None:
+    def __init__(self,
+                 elements: List[Union[Atom, Variable, "PList"]]) -> None:
         self.elements = elements
 
     def __eq__(self, o: object) -> bool:
@@ -66,7 +71,7 @@ class PList:
             return self.elements == o.elements
 
         return False
-    
+
     def get_variables(self) -> List[Variable]:
         """
         Returns a list of variables in the list
@@ -79,7 +84,10 @@ class PList:
                 variables += e.get_variables()
 
         return variables
-    
+
+    def __iter__(self) -> List[Union[Atom, Variable, "PList"]]:
+        return iter(self.elements)
+
     def __len__(self) -> int:
         return len(self.elements)
 
@@ -89,18 +97,22 @@ class PList:
     def __repr__(self) -> str:
         return "PList("'[' + ", ".join([repr(e) for e in self.elements]) + '])'
 
+Term = Union[Atom, Variable, PList]
+
 class Predicate:
     """
     Class for first order predicate literals
     """
-    def __init__(self, name: str, arguments: PList) -> None: 
-        self.name: str = name 
+    def __init__(self,
+                 name: str,
+                 arguments: PList) -> None:
+        self.name: str = name
         self.arguments: PList = arguments
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Predicate):
             return self.name == o.name and self.arguments == o.arguments
-        
+
         return False
 
     def __str__(self) -> str:
@@ -113,25 +125,20 @@ class NfPredicate(Predicate):
     """
     To support negation as failure
     """
-    def __init__(self, name: str, arguments: PList) -> None:
-        super().__init__(name, arguments)
-
     def __eq__(self, o: object) -> bool:
         if isinstance(o, NfPredicate):
             return super().__eq__(o)
 
         return False
 
-    def __str__(self) -> str: 
+    def __str__(self) -> str:
         return "not(" + super().__str__() + ")"
-    
+
     def __repr__(self) -> str:
         return "NfPredicate(" + self.name + ", " + repr(self.arguments) + ")"
 
 
-
-Fact = Predicate # Sematically, a fact is a predicate
-                 # In the other way around it's not true.
+Fact = Predicate # Sematically, a fact is a predicate literal
 
 
 class Conjunction:
@@ -139,7 +146,8 @@ class Conjunction:
     Conjuctions represent rule tails
     Conjuctions represent also queries 
     """
-    def __init__(self, predicates: List[Predicate]) -> None:  # We allow for negation as failure
+    def __init__(self,
+                 predicates: List[Predicate]) -> None:  # We allow for negation as failure
                                                               # in queries and rule tails
         self.predicates = predicates
 
@@ -147,8 +155,10 @@ class Conjunction:
         return ", ".join([str(p) for p in self.predicates])
 
     def __repr__(self) -> str:
-        return "Conjunction(" + ", ".join([repr(p) for p in self.predicates]) + ")"
-    
+        return "Conjunction(" + ", ".join([repr(p)
+                                           for p
+                                           in self.predicates]) + ")"
+
     def __len__(self) -> int:
         return len(self.predicates)
 
@@ -158,13 +168,24 @@ class Conjunction:
 
         return False
 
-Query = Conjunction # Semantically, a query is a conjunction
+    def __iter__(self) -> List[Predicate]:
+        return iter(self.predicates)
+
+    def __getitem__(self, index: int) -> Predicate:
+        return self.predicates[index]
+
+    def __contains__(self, item: Predicate) -> bool:
+        return item in self.predicates
+
+Query = Conjunction # A query is a conjunction
 
 class Rule:
     """
     Rules are made of a head and a tail
     """
-    def __init__(self, head: Predicate, tail: Conjunction) -> None:
+    def __init__(self,
+                 head: Predicate,
+                 tail: Conjunction) -> None:
         self.head = head
         self.tail = tail
 
@@ -188,4 +209,15 @@ class Rule:
         return "Rule(" + repr(self.head) + ", " + repr(self.tail) + ")"
 
 
-Term = Union[Atom, Variable, PList]
+
+
+if __name__ == "__main__":
+    v1 = Variable("X")
+    v2 = Variable("X")
+    v3 = Variable("Y")
+
+    print(v1 is v2)
+    print(hash(v1) == hash(v2))
+    print(hash(v1))
+    print(hash(v2))
+    print(hash(v3))

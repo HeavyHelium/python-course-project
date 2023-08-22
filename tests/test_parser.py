@@ -7,6 +7,13 @@ def test_parse_variable():
     parser = PrologParser("X")
     assert parser.parse_variable() == Variable("X")
 
+def test_bound_variables():
+    parser = PrologParser("grandparent(X, Y) :-\
+                           parent(X, Y), parent(Y, Z).")
+
+    parser.parse_rule()
+    assert parser._bv.keys() == {"X", "Y", "Z"}
+
 def test_parse_atom():
     parser = PrologParser("atom")
     assert parser.parse_atom() == Atom("atom")
@@ -17,7 +24,7 @@ def test_parse_argument():
 
     parser = PrologParser("atom")
     assert parser.parse_argument() == Atom("atom")
-    
+
     parser = PrologParser("[a, b, c]")
     assert parser.parse_argument() == PList([Atom("a"), Atom("b"), Atom("c")])
 
@@ -117,3 +124,12 @@ def test_atom_equality():
     a3 = Atom("a")
     a4 = Atom("b")
     assert a1 == a2 and a1 == a3 and a1 != a4
+
+
+def test_variable_equality():
+    v1 = Variable("X")
+    v2 = Variable("X")
+    v3 = Variable("Y")
+
+    assert v1 == v2 and v1 != v3
+    assert hash(v1) != hash(v2) and hash(v1) != hash(v3)

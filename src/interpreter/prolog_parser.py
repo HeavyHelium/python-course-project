@@ -1,7 +1,7 @@
 """
 A parser for Prolog programs
 """
-from typing import List, Union
+from typing import List, Union, Dict
 from src.interpreter.tokenizer import Tokenizer
 from src.interpreter.terms import Atom, Variable, PList, Predicate,\
                                   NfPredicate, Fact, Rule,\
@@ -20,6 +20,7 @@ class PrologParser:
         self.tokens: List = t.tokens # this might throw an exception,
                                 # but we don't catch it here
         self.index = 0 # index of the current token
+        self._bv: Dict[str, Variable] = {} # set of bound variables
 
     def parse_atom(self) -> Atom:
         """
@@ -34,9 +35,24 @@ class PrologParser:
         """
         Parses a variable
         """
-        variable = Variable(self.tokens[self.index][1])
+        if self.tokens[self.index][0] == "WILDCARD":
+            self.index += 1
+            return Variable("_") # it is never bound
+
+        if self.tokens[self.index][0] != "VARIABLE":
+            self.exp_error("a variable",
+                            str(self.tokens[self.index][0]))
+
+        var: Variable = self._bv.get(self.tokens[self.index][1], None)
+        if not var:
+            var = Variable(self.tokens[self.index][1])
+            self._bv[self.tokens[self.index][1]] = var
+
         self.index += 1
-        return variable
+
+        return var
+
+
 
     def parse_argument(self) -> Union[Atom, Variable, "PList"]:
         """
@@ -146,10 +162,13 @@ class PrologParser:
 
         return NfPredicate(pred.name, pred.arguments)
 
-    def parse_goal(self) -> Conjunction:
+    def parse_goal(self, rule: bool = False) -> Conjunction:
         """
         Parses a conjunction
         """
+        if not rule:
+            self._bv = {} # reset the bound variables
+
         predicates: List[Predicate] = []
         while self.tokens[self.index][0] != "PERIOD":
             if self.tokens[self.index][0] == "NOT":
@@ -174,6 +193,8 @@ class PrologParser:
         """
         Parses a rule
         """
+        self._bv = {} # reset the bound variables
+
         head: Predicate = self.parse_predicate()
         if self.index >= len(self.tokens):
             self.eof_error("implication")
@@ -184,13 +205,16 @@ class PrologParser:
                             str(self.tokens[self.index][0]))
 
         self.index += 1
-        tail: Conjunction = self.parse_goal()
+        tail: Conjunction = self.parse_goal(True)
+
         return Rule(head, tail)
 
     def parse_fact(self) -> Fact:
         """
         Parses a fact
         """
+        self._bv = {} # reset the bound variables
+
         pred: Predicate = self.parse_predicate()
         if self.index >= len(self.tokens):
             self.eof_error("end of clause")
@@ -239,19 +263,3 @@ class PrologParser:
         Same as exp_error, but when the end of file is reached unexpectedly 
         """
         PrologParser.exp_error(expected, "EOF")
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__": 
-    p = Fact("factorial", PList([Atom("N"), Atom("Res"), PList([Atom("N"), Atom("Res")])]))
-    lst = PList([Atom("N"), Atom("Res"), PList([Atom("N"), Atom("Res")])])
-    print(lst)
-    print(repr(lst))
-    print(str(p))
-    print(repr(p))
