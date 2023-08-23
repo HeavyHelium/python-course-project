@@ -105,6 +105,12 @@ class SimpleEditor:
         except ValueError as val_err:
             self.query_frame.set_text("In query: " + str(val_err))
 
+    def quit(self) -> None:
+        """
+        Quits the app
+        """
+        self.root.quit()
+
 
 if __name__ == "__main__":
     editor: SimpleEditor = SimpleEditor()

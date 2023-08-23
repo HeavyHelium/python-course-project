@@ -5,14 +5,16 @@ from src.interpreter.interpreter import Interpreter
 def test_sample():
     prolog: Interpreter = Interpreter()
     path = os.path.join("sample", "test1.pl")
-    src = open(path, "r").read()
 
-    prolog.load_base(src)
+    with open(path, "r", encoding="utf-8") as f:
+        src = f.read()
+        prolog.load_base(src)
 
     exp = """true.
              X = 'Maria', Y = 'Gosho'
              X = 'Maria', Y = 'Ana'
              X = 'Gosho', Y = 'Pesho'"""
+
     assert prolog.answer("parent(X, Y).").split() == exp.split()
 
 
@@ -20,9 +22,10 @@ def test_sample():
 def test_longer_goal():
     prolog: Interpreter = Interpreter()
     path = os.path.join("sample", "test2.pl")
-    src = open(path, "r").read()
 
-    prolog.load_base(src)
+    with open(path, "r", encoding="utf-8") as f:
+        src = f.read()
+        prolog.load_base(src)
 
     exp = """true.
              X = pesho, Y = gosho, Z = ana"""

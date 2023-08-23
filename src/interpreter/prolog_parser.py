@@ -52,8 +52,6 @@ class PrologParser:
 
         return var
 
-
-
     def parse_argument(self) -> Union[Atom, Variable, "PList"]:
         """
         Parses an argument
@@ -62,15 +60,15 @@ class PrologParser:
           or self.tokens[self.index][0] == "WILDCARD":
             return self.parse_variable()
 
-        elif self.tokens[self.index][0] == "ATOM"\
+        if self.tokens[self.index][0] == "ATOM"\
           or self.tokens[self.index][0] == "INTEGER"\
           or self.tokens[self.index][0] =="QUOTED_ATOM":
             return self.parse_atom()
 
-        elif self.tokens[self.index][0] == "LBRACKET":
+        if self.tokens[self.index][0] == "LBRACKET":
             return self.parse_plist()
-        else:
-            self.exp_error("an atom, variable or list", str(self.tokens[self.index][0]))
+
+        self.exp_error("an atom, variable or list", str(self.tokens[self.index][0]))
 
     def parse_plist(self,
                     opener: str = "LBRACKET",

@@ -94,11 +94,9 @@ class FileMenu(tk.Menu):
         """
         Creates a new file
         """
-        if not self.root.text_pad.empty():
-            self.save()
+        self.save()
 
-        self.root.text_pad.text_area.delete('1.0', tk.END)
-        self.root.text_pad.filepath = None
+        self.root.text_pad.clear()
 
     def open(self) -> None:
         """
@@ -117,7 +115,7 @@ class FileMenu(tk.Menu):
         """
         if not self.root.text_pad.empty():
             self.save()
-        self.root.root.quit()
+        self.root.quit()
 
 
 class FontWindow(tk.Toplevel):

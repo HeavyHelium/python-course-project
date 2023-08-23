@@ -61,7 +61,6 @@ class PList:
     """
     Class for first order predicate lists
     Usually used as arguments to predicates
-    Also used to represent Prolog lists 
     """
     def __init__(self,
                  elements: List[Union[Atom, Variable, "PList"]]) -> None:
@@ -72,7 +71,6 @@ class PList:
             return self.elements == o.elements
 
         return False
-
 
     def __contains__(self,
                      item: Union[Atom, Variable, "PList"]) -> bool:

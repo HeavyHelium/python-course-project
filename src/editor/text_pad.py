@@ -114,7 +114,16 @@ class TextPad:
         Opens a file in the text area
         """
         with open(filepath, 'r', encoding="utf8") as f:
-            self.text_area.delete('1.0', tk.END)
+            self.clear()
             self.text_area.insert('1.0', f.read())
+
         self.filepath = filepath
         self.update_number_bar()
+
+    def clear(self) -> None:
+        """
+        Clears the text area
+        """
+        self.text_area.delete('1.0', tk.END)
+        self.update_number_bar()
+        self.filepath = None
