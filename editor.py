@@ -13,7 +13,7 @@ from src.editor.menus import Menu
 from src.interpreter.interpreter import Interpreter
 
 
-class SimpleEditor():
+class SimpleEditor:
     """
     The main class for the app
     """
@@ -51,7 +51,7 @@ class SimpleEditor():
         self.root.bind("<Control-s>", self.menu.menus['file'].save)
         self.root.bind("<Control-v>", self.text_pad.update_number_bar())
         self.root.bind("<Control-Return>", self.run_query)
-    
+
     def run(self) -> None:
         """
         Runs the app
@@ -94,16 +94,16 @@ class SimpleEditor():
 
         intr: Interpreter = Interpreter()
         try:
-            intr.load_base_direct(src)
-        except Exception as e:
-            self.query_frame.set_text(str(e))
+            intr.load_base(src)
+        except ValueError as val_err:
+            self.query_frame.set_text("In knowledge base: " + str(val_err))
             return
 
         try:
             res = str(intr.answer(query))
             self.query_frame.set_text(res)
-        except Exception as e:
-            self.query_frame.set_text(str(e))
+        except ValueError as val_err:
+            self.query_frame.set_text("In query: " + str(val_err))
 
 
 if __name__ == "__main__":
