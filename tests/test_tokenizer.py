@@ -1,7 +1,7 @@
 from src.interpreter.tokenizer import Tokenizer
 import pytest
 
-sample_program = """good('Pain') :- meaningful('Pain'), 
+sample_program = """good('Pain') :- meaningful('Pain'),
                                 not(deadly('Pain')).
                     /* In our definition, 
                     the empty list is not an atom(syntactically)
@@ -17,21 +17,21 @@ sample_program = """good('Pain') :- meaningful('Pain'),
 def test_tokenizer():
     t = Tokenizer()
     t.tokenize(sample_program)
-    assert t.tokens == [('ATOM', 'good'), ('LPAREN', '('), 
-                        ('QUOTED_ATOM', "'Pain'"), ('RPAREN', ')'), 
-                        ('IMPLICATION', ':-'), ('ATOM', 'meaningful'), 
-                        ('LPAREN', '('), ('QUOTED_ATOM', "'Pain'"), 
+    assert t.tokens == [('ATOM', 'good'), ('LPAREN', '('),
+                        ('QUOTED_ATOM', "'Pain'"), ('RPAREN', ')'),
+                        ('IMPLICATION', ':-'), ('ATOM', 'meaningful'),
+                        ('LPAREN', '('), ('QUOTED_ATOM', "'Pain'"),
                         ('RPAREN', ')'), ('COMMA', ','), ('NOT', 'not'),
                         ('LPAREN', '('), ('ATOM', 'deadly'),
                         ('LPAREN', '('), ('QUOTED_ATOM', "'Pain'"),
-                        ('RPAREN', ')'), ('RPAREN', ')'), ('PERIOD', '.'), 
-                        ('ATOM', 'list'), ('LPAREN', '('), ('LBRACKET', '['), 
-                        ('RBRACKET', ']'), ('RPAREN', ')'), ('PERIOD', '.'), 
+                        ('RPAREN', ')'), ('RPAREN', ')'), ('PERIOD', '.'),
+                        ('ATOM', 'list'), ('LPAREN', '('), ('LBRACKET', '['),
+                        ('RBRACKET', ']'), ('RPAREN', ')'), ('PERIOD', '.'),
                         ('ATOM', 'something'), ('LPAREN', '('), ('WILDCARD', '_'),
                         ('RPAREN', ')'), ('PERIOD', '.'),
                         ]
 
-def test_list_tokens(): 
+def test_list_tokens():
     t = Tokenizer()
     t.tokenize('[]')
     assert t.tokens == [('LBRACKET', '['), ('RBRACKET', ']')]
@@ -46,7 +46,7 @@ def test_list_tokens():
                         ('RBRACKET', ']'), ('RPAREN', ')'), ('PERIOD', '.')]
 
 
-def test_invalid(): 
+def test_invalid():
     src = """
         
         nat(0).

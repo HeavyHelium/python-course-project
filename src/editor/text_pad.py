@@ -5,7 +5,7 @@ import tkinter as tk
 from src.editor.configs import FontConfig, ModeConfig
 
 
-class TextPad():
+class TextPad:
     """
     Represents the typing area of the editor
     """
@@ -36,7 +36,6 @@ class TextPad():
         """
         Updates the line numbers when a key is pressed
         """
-        #print(f"Pressed {event.keysym}")
         self.update_number_bar()
 
     def on_scroll(self, *args) -> None:
@@ -53,7 +52,8 @@ class TextPad():
         self.scrollbar.set(*args)
         self.on_scroll('moveto', args[0])
 
-    def set_font(self, font_config=FontConfig('Courier', 16)):
+    def set_font(self,
+                 font_config=FontConfig('Courier', 16)) -> None:
         """
         Sets the font of the text area
         """
@@ -62,7 +62,8 @@ class TextPad():
             elem.config(font=(font_config.family,
                               font_config.size))
 
-    def set_mode(self, mode_config=ModeConfig.dark_mode()) -> None:
+    def set_mode(self,
+                 mode_config=ModeConfig.dark_mode()) -> None:
         """
         Sets the mode of the text area
         """
@@ -92,7 +93,7 @@ class TextPad():
         """
         Saves the text area to a file
         """
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding="utf8") as f:
             f.write(self.text_area.get('1.0', tk.END))
         self.filepath = filepath
 
@@ -109,9 +110,11 @@ class TextPad():
         return self.text_area.get('1.0', tk.END) == '\n'
 
     def open(self, filepath) -> None:
-        with open(filepath, 'r') as f:
+        """
+        Opens a file in the text area
+        """
+        with open(filepath, 'r', encoding="utf8") as f:
             self.text_area.delete('1.0', tk.END)
             self.text_area.insert('1.0', f.read())
         self.filepath = filepath
         self.update_number_bar()
-

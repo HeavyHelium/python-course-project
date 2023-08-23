@@ -58,4 +58,3 @@ class ModeConfig:
                    'light yellow',
                    'purple',
                     FontConfig('Courier', 16))
-

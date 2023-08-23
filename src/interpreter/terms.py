@@ -2,14 +2,14 @@
 Module to represent terms and clauses
 """
 
-from typing import List, Union
+from typing import List, Union, Dict
 
 class Variable:
     """
     Class for first order variables
     """
     def __init__(self, name: str) -> None:
-        self.name = name
+        self.name: str = name
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Variable):
@@ -19,6 +19,7 @@ class Variable:
 
     def __hash__(self) -> int:
         return id(self) # so as to get a unique hash for each variable, regardless of name
+                        # this is essential for supporting strong substitution
 
     def __str__(self) -> str:
         return self.name
@@ -31,7 +32,7 @@ class Atom:
     Class for first order atoms a.k.a. symbols
     """
     def __init__(self, name: str) -> None:
-        self.name = name
+        self.name: str = name
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Atom):
@@ -64,7 +65,7 @@ class PList:
     """
     def __init__(self,
                  elements: List[Union[Atom, Variable, "PList"]]) -> None:
-        self.elements = elements
+        self.elements: List[Union[Atom, Variable, "PList"]] = elements
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, PList):
@@ -72,18 +73,18 @@ class PList:
 
         return False
 
-    def get_variables(self) -> List[Variable]:
-        """
-        Returns a list of variables in the list
-        """
-        variables: List[Variable] = []
-        for e in self.elements:
-            if isinstance(e, Variable):
-                variables.append(e)
-            elif isinstance(e, PList):
-                variables += e.get_variables()
 
-        return variables
+    def __contains__(self,
+                     item: Union[Atom, Variable, "PList"]) -> bool:
+        for e in self.elements:
+
+            if isinstance(e, PList):
+                return item in e
+
+            if isinstance(e, Variable):
+                return e is item
+
+            return e == item
 
     def __iter__(self) -> List[Union[Atom, Variable, "PList"]]:
         return iter(self.elements)
@@ -92,10 +93,14 @@ class PList:
         return len(self.elements)
 
     def __str__(self) -> str:
-        return '[' + ", ".join([str(e) for e in self.elements]) + ']'
+        return '[' + ", ".join([str(e)
+                                for e
+                                in self.elements]) + ']'
 
     def __repr__(self) -> str:
-        return "PList("'[' + ", ".join([repr(e) for e in self.elements]) + '])'
+        return "PList("'[' + ", ".join([repr(e)
+                                        for e
+                                        in self.elements]) + '])'
 
 Term = Union[Atom, Variable, PList]
 
@@ -115,8 +120,15 @@ class Predicate:
 
         return False
 
+    def __len__(self) -> int:
+        """
+        Returns the arity of the predicate
+        """
+        return len(self.arguments)
+
     def __str__(self) -> str:
         return self.name + str(self.arguments)
+
     def __repr__(self) -> str:
         return "Predicate(" + self.name + ", " + repr(self.arguments) + ")"
 
@@ -144,12 +156,26 @@ Fact = Predicate # Sematically, a fact is a predicate literal
 class Conjunction:
     """
     Conjuctions represent rule tails
-    Conjuctions represent also queries 
+    Conjuctions represent also queries
     """
     def __init__(self,
-                 predicates: List[Predicate]) -> None:  # We allow for negation as failure
-                                                              # in queries and rule tails
-        self.predicates = predicates
+                 predicates: List[Predicate]) -> None:
+        self.predicates: List[Predicate] = predicates
+
+    @property
+    def variables(self) -> Dict[str, Variable]:
+        """
+        Returns a dictionary of the variables in the conjunction
+        """
+
+        b_vars: Dict[str, Variable] = {}
+
+        for predicate in self.predicates:
+            for arg in predicate.arguments:
+                if isinstance(arg, Variable):
+                    b_vars[arg.name] = arg # if adding list support, change this
+
+        return b_vars
 
     def __str__(self) -> str:
         return ", ".join([str(p) for p in self.predicates])
@@ -179,6 +205,8 @@ class Conjunction:
 
 Query = Conjunction # A query is a conjunction
 
+
+
 class Rule:
     """
     Rules are made of a head and a tail
@@ -186,14 +214,14 @@ class Rule:
     def __init__(self,
                  head: Predicate,
                  tail: Conjunction) -> None:
-        self.head = head
-        self.tail = tail
+
+        self.head: Predicate = head
+        self.tail: Conjunction = tail
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Rule):
             return self.head == o.head and self.tail == o.tail
-        else:
-            return False
+        return False
 
     @property
     def name(self) -> str:
@@ -207,17 +235,3 @@ class Rule:
 
     def __repr__(self) -> str:
         return "Rule(" + repr(self.head) + ", " + repr(self.tail) + ")"
-
-
-
-
-if __name__ == "__main__":
-    v1 = Variable("X")
-    v2 = Variable("X")
-    v3 = Variable("Y")
-
-    print(v1 is v2)
-    print(hash(v1) == hash(v2))
-    print(hash(v1))
-    print(hash(v2))
-    print(hash(v3))

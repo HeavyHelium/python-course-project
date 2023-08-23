@@ -1,5 +1,5 @@
 """
-Contains various menus classes for the editor
+Contains various menu classes for the editor
 """
 
 import tkinter as tk
@@ -16,13 +16,15 @@ class ModeMenu(tk.Menu):
                                ModeConfig.light_mode(),
                                ModeConfig.sh_bish_mode()]
 
-    def __init__(self, master: tk.Frame, root: 'simple_editor'):
+    def __init__(self,
+                 master: tk.Frame,
+                 root: 'simple_editor') -> None:
         super().__init__(master,
                          tearoff=0)
         self.root = root
         self.add_modes()
 
-    def add_modes(self):
+    def add_modes(self) -> None:
         """
         Adds the modes to the menu
         """
@@ -31,14 +33,17 @@ class ModeMenu(tk.Menu):
                              command=lambda mode=mode:
                              self.root.set_mode(mode))
 
+
 class FileMenu(tk.Menu):
     """
     Represents the file menu
     """
     FILE_TYPES = [('Prolog Files', '*.pl'),
-                  ('Text Files', '*.*')]
+                  ('All Files', '*.*')]
 
-    def __init__(self, master: tk.Frame, root: 'simple_editor') -> None:
+    def __init__(self,
+                 master: tk.Frame,
+                 root: 'simple_editor') -> None:
         super().__init__(master,
                          tearoff=0)
         self.root = root
@@ -130,7 +135,7 @@ class FontWindow(tk.Toplevel):
         self.rowconfigure(3, weight=1)
         self.columnconfigure((0, 1), weight=1)
 
-        self.__font_family()
+        self._font_family()
         self._font_size()
         self._apply_button()
 
@@ -138,7 +143,7 @@ class FontWindow(tk.Toplevel):
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure((0, 1), weight=1)
 
-    def __font_family(self) -> None:
+    def _font_family(self) -> None:
         family_label = tk.Label(self, text='Font Family:')
         family_label.grid(row=1, column=0, sticky='nsew')
 
@@ -156,6 +161,7 @@ class FontWindow(tk.Toplevel):
                                   from_=FontConfig.FONT_SIZE[0],
                                   to=FontConfig.FONT_SIZE[1],
                                   textvariable=self.root.font_size)
+
         size_spinbox.grid(row=0, column=1, sticky='nsew')
 
     def _apply_button(self) -> None:
@@ -167,8 +173,7 @@ class FontWindow(tk.Toplevel):
         apply_button.grid(row=3, column=0, columnspan=2, sticky='nsew')
 
 
-
-class Menu():
+class Menu:
     """
     Represents the menu bar
     """
@@ -207,4 +212,3 @@ class Menu():
 
         self.menu_bar.add_cascade(label='Preferences',
                                   menu=self.menus['preferences'])
-   

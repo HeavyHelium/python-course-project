@@ -1,26 +1,33 @@
-from src.interpreter.interpreter import Interpreter
-from src.interpreter.terms import Variable, Atom
 import os
+import pytest
+from src.interpreter.interpreter import Interpreter
 
 def test_sample():
     prolog: Interpreter = Interpreter()
-    print(os.getcwd())
-    prolog.load_base("sample/parent.pl")
-    print(prolog.answer("parent(X, Y)."))
-    assert prolog.answer("parent(X, Y).") == [{Variable('X'): Atom("Maria"), Variable('Y'): Atom("Gosho")},
-                                               {Variable('X'): Atom("Maria"), Variable('Y'): Atom("Ana")},
-                                               {Variable('X'): Atom("Gosho"), Variable('Y'): Atom("Pesho")}]
+    path = os.path.join("sample", "test1.pl")
+    src = open(path, "r").read()
+
+    prolog.load_base(src)
+
+    exp = """true.
+             X = 'Maria', Y = 'Gosho'
+             X = 'Maria', Y = 'Ana'
+             X = 'Gosho', Y = 'Pesho'"""
+    assert prolog.answer("parent(X, Y).").split() == exp.split()
 
 
-def test_simple():
-    prolog = Interpreter()
-    prolog.load_base_direct("parent(maria, gosho).")
-    assert prolog.answer("parent(X, Y).") == [{Variable('X'): Atom("maria"), Variable('Y'): Atom("gosho")}]
 
-
-def test_rule():
+def test_longer_goal():
     prolog: Interpreter = Interpreter()
-    prolog.load_base("sample/grandparent.pl")
+    path = os.path.join("sample", "test2.pl")
+    src = open(path, "r").read()
 
-    assert prolog.answer("parent(X, Y), parent(Y, Z).") == None
-                                                
+    prolog.load_base(src)
+
+    exp = """true.
+             X = pesho, Y = gosho, Z = ana"""
+
+    assert prolog.answer("parent(X, Y), parent(Y, Z).").split() == exp.split()
+
+    with pytest.raises(ValueError):
+        prolog.answer("ancestor.")

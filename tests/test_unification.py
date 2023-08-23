@@ -1,9 +1,6 @@
 from src.interpreter.terms import Atom, Variable, PList,\
                                   Predicate, Conjunction
-
-from src.interpreter.knowledge_base import KnowledgeBase
-from src.interpreter.unification import SubstitutionApplicator,\
-                                        Substitution, unify, unify_conjunction
+from src.interpreter.unification import unify
 
 def test_simple():
     t1 = Atom("a")
@@ -50,31 +47,3 @@ def test_conjunction():
 
     unif = unify(c1, c2)
     assert unif
-
-# def test_answering_simple():
-#     kb = KnowledgeBase()
-#     kb.add_clause(Predicate("parent", PList([Atom("Maria"), Atom("Gosho")])))
-#     kb.add_clause(Predicate("parent", PList([Atom("Maria"), Atom("Ana")])))
-#     kb.add_clause(Predicate("parent", PList([Atom("Gosho"), Atom("Pesho")])))
-
-
-#     goal = [Predicate("parent", PList([Atom("Maria"), Variable("X")]))]
-#     assert kb.answer_query(goal, {}) == [({Variable('X'): Atom("Gosho")}),
-#                                          ({Variable('X'): Atom("Ana")})]
-    
-#     goal = [Predicate("parent", PList([Variable("X"), Atom("Gosho")]))]
-#     assert kb.answer_query(goal, {}) == [({Variable('X'): Atom("Maria")})]
-    
-
-# def test_answering_rules():
-#     kb = KnowledgeBase()
-#     grandparent = Rule(Predicate("grandparent", PList([Variable("X"), Variable("Z")])),
-#                        [Predicate("parent", PList([Variable("X"), Variable("Y")])),
-#                         Predicate("parent", PList([Variable("Y"), Variable("Z")]))])
-#     kb.add_clause(grandparent)
-#     kb.add_clause(Predicate("parent", PList([Atom("Maria"), Atom("Gosho")])))
-#     kb.add_clause(Predicate("parent", PList([Atom("Maria"), Atom("Ana")])))
-#     kb.add_clause(Predicate("parent", PList([Atom("Gosho"), Atom("Pesho")])))
-
-#     goal = [Predicate("grandparent", PList([Atom("Maria"), Variable("T")]))]
-#     assert kb.answer_query(goal, {}) == [({Variable('T'): Atom("Pesho")})]

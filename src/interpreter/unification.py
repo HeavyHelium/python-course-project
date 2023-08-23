@@ -6,13 +6,14 @@ from functools import reduce
 
 from src.interpreter.terms import Atom, Variable,\
                                   PList, Predicate, Term,\
-                                  Conjunction
+                                  Conjunction,\
+                                  NfPredicate
 
 Substitution = Dict[Variable, Term]
 
 class SubstitutionApplicator:
     """
-    Class to apply substitution of different terms
+    Class to apply substitution on different terms
     """
     def __init__(self, subs: Substitution) -> None:
         self.subs = subs
@@ -39,6 +40,9 @@ class SubstitutionApplicator:
         """
         Applies substitution to a predicate
         """
+        if isinstance(p, NfPredicate):
+            return NfPredicate(p.name,
+                                self.sub_term(p.arguments))
         return Predicate(p.name,
                          self.sub_term(p.arguments))
 
@@ -53,7 +57,7 @@ class SubstitutionApplicator:
                 sub2: Substitution) -> Union[Substitution, None]:
         """
         Composes two substitutions
-        :Returns: the composition of the two substitutions
+        Returns the composition of the two substitutions
         or None if there are conflicts or one of the substutions is the empty substitution
         """
         if sub1 is None or sub2 is None:
@@ -64,7 +68,6 @@ class SubstitutionApplicator:
         for var, term in sub1.items():
             sub[var] = sub2.get(term, term)
 
-        print(sub2)
         for var, term in sub2.items():
             if var not in sub:
                 sub[var] = term
@@ -78,7 +81,6 @@ class SubstitutionApplicator:
                     return None
 
         return sub
-
 
 
 def occurs_check(var: Variable,
@@ -101,7 +103,8 @@ def unify(t1: Union[Term, Predicate, Conjunction],
     Finds the most general unifier of two terms
     """
 
-    sub: Substitution = None
+    # This could've been implemented with abstract classes
+    # But the algorithm translates more clearly this way
 
     if isinstance(t1, Atom) and isinstance(t2, Atom):
         return {} if t1 == t2 else None
@@ -117,10 +120,10 @@ def unify(t1: Union[Term, Predicate, Conjunction],
 
     if isinstance(t1, Predicate) and isinstance(t2, Predicate):
         return unify_predicate(t1, t2)
-    
+
     if isinstance(t1, Conjunction) and isinstance(t2, Conjunction):
         return unify_conjunction(t1, t2)
-    
+
     return None
 
 

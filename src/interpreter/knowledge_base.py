@@ -4,10 +4,12 @@ Module to represent the knowledge base
 
 from typing import List, Union
 
-from src.interpreter.terms import Fact, Rule,\
+from src.interpreter.terms import Fact, NfPredicate, Rule,\
                                   Predicate, Conjunction
 
-from src.interpreter.unification import unify, Substitution, SubstitutionApplicator
+from src.interpreter.unification import unify,\
+                                        Substitution,\
+                                        SubstitutionApplicator
 
 class KnowledgeBase:
     """
@@ -32,8 +34,7 @@ class KnowledgeBase:
     def __eq__(self, o: object) -> bool:
         if isinstance(o, KnowledgeBase):
             return self.clauses == o.clauses
-        else:
-            return False
+        return False
 
 
     def __str__(self) -> str:
@@ -45,76 +46,77 @@ class KnowledgeBase:
     def query_single(self, goal: Predicate) -> List[Predicate]:
         """
          Queries the knowledge base
-        :Returns: substituded goal heads
+        :Returns: substitued goal heads
         """
 
         preds: List[Predicate] = []
 
-        print(f"Querying {goal}")
+        if goal.name not in self.clauses:
+            raise ValueError("No such predicate: "
+                              + str(goal.name)
+                              + "\\"
+                              + str(len(goal)))
 
         for clause in self.clauses[goal.name]:
             if isinstance(clause, Fact):
-                print(f"Checking fact {clause}")
                 unif: Substitution = unify(clause, goal)
-                print(f"unif: {unif}")
 
                 if unif is not None:
                     preds.append(SubstitutionApplicator(unif).sub_predicate(goal))
 
             elif isinstance(clause, Rule):
-                print(f"Checking rule {clause}")
                 unif_head: Substitution = unify(clause.head, goal)
-                print(f"unif_head: {unif_head}")
 
                 if unif_head is not None:
-                    subbed_head: Predicate = SubstitutionApplicator(unif_head).sub_predicate(clause.head)
-                    subbed_tail: Conjunction = SubstitutionApplicator(unif_head).sub_conjunction(clause.tail)
-                    print(f"subbed_head: {subbed_head}")
-                    print(f"subbed_tail: {subbed_tail}")
+                    sa: SubstitutionApplicator = SubstitutionApplicator(unif_head)
+
+                    subbed_head: Predicate = sa.sub_predicate(clause.head)
+                    subbed_tail: Conjunction = sa.sub_conjunction(clause.tail)
 
                     for conj in self.answer_query_rec(subbed_tail, 0, unif_head):
                         subs: Substitution = unify(subbed_tail, conj)
-
                         if subs is not None:
                             preds.append(SubstitutionApplicator(subs).sub_predicate(subbed_head))
 
-            print(f"Given goal {goal}, found {preds}")
         return preds
 
     def answer_query_rec(self,
                          goal: Conjunction,
-                         id: int,
+                         idx: int,
                          sub: Substitution) -> List[Conjunction]:
         """
         Answers a query
         :Returns: a list of substitutioned goals
         """
-        if id == len(goal):
+        if idx == len(goal):
             return [SubstitutionApplicator(sub).sub_conjunction(goal)] # we found a solution
-        
+
+
         sols: List[Conjunction] = []
-        current_pred: Predicate = goal[id]
-        print(f"Current predicate: {current_pred}")
+        current_pred: Predicate = goal[idx]
 
         subs_applicator: SubstitutionApplicator = SubstitutionApplicator(sub)
-        print(f"Current substitution: {sub}")
 
+        preds: List[Predicate] = self.query_single(subs_applicator.sub_predicate(current_pred))
 
-        for pred in self.query_single(subs_applicator.sub_predicate(current_pred)):
+        for pred in preds:
             # for each matchings of the current predicate(in the current substitution)
             # we try to match the next predicate
 
             unif: Substitution = unify(pred, current_pred)
-            print(f"for predicate {pred} and {current_pred}, found {unif}")
 
-            comp_sub: Substitution = subs_applicator.compose(unif, sub) # compose the current substitution with the new one
+            # compose the current substitution with the new one
+            comp_sub: Substitution = subs_applicator.compose(unif, sub)
 
             if comp_sub is not None:
-                # go your own way
-                sols.extend(self.answer_query_rec(goal, id + 1, comp_sub)) # extend the solutions with the ones given the new substitution
-                print(f"Given goal {goal}, found {sols}")
-        
-        print(f"Given goal {goal}, found {sols}")
+                # extend the solutions with the ones given the new substitution
+                sols.extend(self.answer_query_rec(goal, idx + 1, comp_sub))
+
+        if not preds and isinstance(current_pred, NfPredicate):
+            sols.extend(self.answer_query_rec(goal, idx + 1, sub))
+
+        elif preds and isinstance(current_pred, NfPredicate):
+            return []
 
         return sols
 
@@ -123,17 +125,6 @@ class KnowledgeBase:
         Answers a query
         :Returns: a list of substitutted goals
         """
-        return self.answer_query_rec(goal, 0, {})
+        sol = self.answer_query_rec(goal, 0, {})
 
-
-
-
-
-
-
-
-        
-
-
-
-        
+        return sol
