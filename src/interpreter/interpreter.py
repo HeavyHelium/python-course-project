@@ -34,8 +34,9 @@ class Interpreter:
         solutions: List[Conjunction] = self.kb.answer_query(query)
 
         if solutions:
-            answer += "true.\n"
             for solution in solutions:
+                answer += "true.\n"
+
                 var_bindings: Substitution = query.variables
 
                 subs: Substitution = unify(query, solution)

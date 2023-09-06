@@ -170,7 +170,7 @@ class Conjunction:
 
         for predicate in self.predicates:
             for arg in predicate.arguments:
-                if isinstance(arg, Variable):
+                if isinstance(arg, Variable) and not arg.name == '_':
                     b_vars[arg.name] = arg # if adding list support, change this
 
         return b_vars

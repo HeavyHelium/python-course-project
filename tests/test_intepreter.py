@@ -12,7 +12,9 @@ def test_sample():
 
     exp = """true.
              X = 'Maria', Y = 'Gosho'
+             true.
              X = 'Maria', Y = 'Ana'
+             true.
              X = 'Gosho', Y = 'Pesho'"""
 
     assert prolog.answer("parent(X, Y).").split() == exp.split()
