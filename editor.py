@@ -23,9 +23,10 @@ class SimpleEditor:
                  mode_config: ModeConfig = ModeConfig.sh_bish_mode()) -> None:
         self.root = tk.Tk()
         self.root.configure(bg='green')
-        self.root.attributes('-zoomed', True)
+        #self.root.attributes('-zoomed', True)
 
         self.query_frame = QueryFrame(self.root)
+        # !NB! redundant
         self.number_bar = tk.Text(self.root, width=3)
         self.number_bar.grid(row=0, column=0, sticky='nsew')
 
