@@ -26,9 +26,6 @@ class SimpleEditor:
         #self.root.attributes('-zoomed', True)
 
         self.query_frame = QueryFrame(self.root)
-        # !NB! redundant
-        self.number_bar = tk.Text(self.root, width=3)
-        self.number_bar.grid(row=0, column=0, sticky='nsew')
 
         self.text_pad = TextPad(self.root)
 
