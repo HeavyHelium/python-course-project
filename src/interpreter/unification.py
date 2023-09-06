@@ -26,25 +26,27 @@ class SubstitutionApplicator:
         if self.subs == {}:
             return t
 
-        if isinstance(t, Variable):
-            val: Term = self.subs.get(t)
-            return self.sub_term(val) if val else t
-
-        if isinstance(t, PList):
-            elems: List[Term] = [self.sub_term(e) for e in t.elements]
-            return PList(elems)
-
-        return t # Atom
+        match t:
+            case Variable():
+                val: Term = self.subs.get(t)
+                return self.sub_term(val) if val else t
+            case PList():
+                elems: List[Term] = [self.sub_term(e) for e in t.elements]
+                return PList(elems)
+            case _:
+                return t # Atom
 
     def sub_predicate(self, p: Predicate) -> Predicate:
         """
         Applies substitution to a predicate
         """
-        if isinstance(p, NfPredicate):
-            return NfPredicate(p.name,
-                                self.sub_term(p.arguments))
-        return Predicate(p.name,
-                         self.sub_term(p.arguments))
+        match p:
+            case NfPredicate():
+                return NfPredicate(p.name,
+                                   self.sub_term(p.arguments))
+            case Predicate():
+                return Predicate(p.name,
+                                 self.sub_term(p.arguments))
 
     def sub_conjunction(self, c: Conjunction) -> Conjunction:
         """
@@ -88,13 +90,14 @@ def occurs_check(var: Variable,
     """
     Checks if a variable occurs in a term
     """
-    if isinstance(term, Variable):
-        return var is term
 
-    if isinstance(term, PList):
-        return any(occurs_check(var, t) for t in term.elements)
-
-    return False
+    match term:
+        case Variable():
+            return var is term
+        case PList():
+            return any(occurs_check(var, t) for t in term.elements)
+        case _:
+            return False
 
 
 def unify(t1: Union[Term, Predicate, Conjunction],
@@ -106,25 +109,27 @@ def unify(t1: Union[Term, Predicate, Conjunction],
     # This could've been implemented with abstract classes
     # But the algorithm translates more clearly this way
 
-    if isinstance(t1, Atom) and isinstance(t2, Atom):
-        return {} if t1 == t2 else None
+    match t1, t2:
+        case Atom(), Atom():
+            return {} if t1 == t2 else None
 
-    if isinstance(t1, Variable):
-        return unify_variable(t1, t2)
+        case Variable(), _:
+            return unify_variable(t1, t2)
 
-    if isinstance(t2, Variable):
-        return unify_variable(t2, t1)
+        case _, Variable():
+            return unify_variable(t2, t1)
 
-    if isinstance(t1, PList) and isinstance(t2, PList):
-        return unify_list(t1, t2)
+        case PList(), PList():
+            return unify_list(t1, t2)
 
-    if isinstance(t1, Predicate) and isinstance(t2, Predicate):
-        return unify_predicate(t1, t2)
+        case Predicate(), Predicate():
+            return unify_predicate(t1, t2)
 
-    if isinstance(t1, Conjunction) and isinstance(t2, Conjunction):
-        return unify_conjunction(t1, t2)
+        case Conjunction(), Conjunction():
+            return unify_conjunction(t1, t2)
 
-    return None
+        case _:
+            return None
 
 
 def unify_variable(var: Variable,

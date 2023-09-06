@@ -76,13 +76,18 @@ class PList:
                      item: Union[Atom, Variable, "PList"]) -> bool:
         for e in self.elements:
 
-            if isinstance(e, PList):
-                return item in e
+            match e:
+                case PList():
+                    if item in e:
+                        return True
+                case Variable():
+                    if e is item:
+                        return True
+                case _: # Atom
+                    if e == item:
+                        return True
 
-            if isinstance(e, Variable):
-                return e is item
-
-            return e == item
+        return False
 
     def __iter__(self) -> List[Union[Atom, Variable, "PList"]]:
         return iter(self.elements)

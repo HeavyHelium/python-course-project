@@ -58,25 +58,29 @@ class KnowledgeBase:
                               + str(len(goal)))
 
         for clause in self.clauses[goal.name]:
-            if isinstance(clause, Fact):
-                unif: Substitution = unify(clause, goal)
 
-                if unif is not None:
-                    preds.append(SubstitutionApplicator(unif).sub_predicate(goal))
+            match clause:
+                case Fact():
+                    unif: Substitution = unify(clause, goal)
 
-            elif isinstance(clause, Rule):
-                unif_head: Substitution = unify(clause.head, goal)
+                    if unif is not None:
+                        preds.append(SubstitutionApplicator(unif).sub_predicate(goal))
 
-                if unif_head is not None:
-                    sa: SubstitutionApplicator = SubstitutionApplicator(unif_head)
+                case Rule():
+                    unif_head: Substitution = unify(clause.head, goal)
 
-                    subbed_head: Predicate = sa.sub_predicate(clause.head)
-                    subbed_tail: Conjunction = sa.sub_conjunction(clause.tail)
+                    if unif_head is not None:
+                        sa: SubstitutionApplicator = SubstitutionApplicator(unif_head)
 
-                    for conj in self.answer_query_rec(subbed_tail, 0, unif_head):
-                        subs: Substitution = unify(subbed_tail, conj)
-                        if subs is not None:
-                            preds.append(SubstitutionApplicator(subs).sub_predicate(subbed_head))
+                        subbed_head: Predicate = sa.sub_predicate(clause.head)
+                        subbed_tail: Conjunction = sa.sub_conjunction(clause.tail)
+
+                        for conj in self.answer_query_rec(subbed_tail, 0, unif_head):
+                            subs: Substitution = unify(subbed_tail, conj)
+                            if subs is not None:
+                                preds.append(SubstitutionApplicator(subs).sub_predicate(subbed_head))
+                case _:
+                    raise ValueError("Unknown clause type: " + str(clause))
 
         return preds
 
